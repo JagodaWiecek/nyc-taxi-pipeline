@@ -1,6 +1,18 @@
 # nyc-taxi-pipeline
 A data engineering project that ingests NYC TLC yellow taxi trip data into
 Databricks using Python and PySpark. The goal is a fully automated pipeline, medallion architecture, with tests, CI/CD and dbt models.
+## Goal
+Build an automated, tested data pipeline that turns raw NYC yellow taxi trip
+data into analytics-ready tables, medallion architecture bronze, silver, gold,
+so that we can answer where, when and how much people ride, and what drives
+revenue and tips.
+
+### Business questions
+
+1. **Demand:** at what hours and on which days are there the most trips, and how does demand change over the year?
+2. **Locations:** which pickup and dropoff zones, like airports or Manhattan, generate the most trips and revenue?
+3. **Revenue and tips:** what drives revenue and tip size, payment type, time of day or distance?
+4. **Efficiency:** what are the average distance, duration and price per mile, by hour and by zone?
 
 ## Status
 **Code**
@@ -35,8 +47,8 @@ Databricks using Python and PySpark. The goal is a fully automated pipeline, med
 
 ## Data
 
-Source: [NYC TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
-(yellow taxi, one Parquet file per month). 
+Source: [NYC TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page) (yellow taxi, one Parquet file per month). Files are stored in the Unity Catalog Volume `workspace.bronze.raw`. The downloaded date range is set in `src/config.py`.
+
 
 Files are stored in the Unity Catalog
 Volume `workspace.bronze.raw`. The downloaded date range is set in `src/config.py`. Column descriptions follow the official TLC data dictionary. Money amounts are in US dollars, distances in miles. Timestamps are local New York time without a time zone.
