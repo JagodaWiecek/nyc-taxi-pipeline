@@ -1,5 +1,6 @@
 from src.clients import TlcClient, month_range
 from src.config import Config
+from src.exceptions import DownloadError, MonthNotAvailableError
 
 import pytest
 import os
@@ -77,7 +78,7 @@ def test_download_month_leaves_no_file_on_http_error(tmp_path):
     response.raise_for_status.side_effect = requests.HTTPError("404")
     client.session.get.return_value = response
 
-    with pytest.raises(requests.HTTPError):
+    with pytest.raises(DownloadError):
         client.download_month("2024-01")
 
     assert os.listdir(tmp_path) == []
@@ -88,5 +89,62 @@ def test_month_range_crosses_year_boundary():
     assert month_range("2023-11", "2024-02") == [
         "2023-11", "2023-12", "2024-01", "2024-02"
     ]
+
+def test_download_month_raises_month_not_available_on_404(tmp_path):
+    """A 404 means TLC has not published the month yet."""
+    client = TlcClient(FakeConfig(tmp_path))
+    client.session = MagicMock()
+    response = _make_fake_response([])
+    response.raise_for_status.side_effect = requests.HTTPError(
+        "404", response=MagicMock(status_code=404)
+    )
+    client.session.get.return_value = response
+
+    with pytest.raises(MonthNotAvailableError):
+        client.download_month("2024-01")
+
+    assert os.listdir(tmp_path) == []
+
+
+def test_download_month_rejects_empty_file(tmp_path):
+    """An empty download is an error and leaves no file behind."""
+    client = TlcClient(FakeConfig(tmp_path))
+    client.session = MagicMock()
+    client.session.get.return_value = _make_fake_response([])
+
+    with pytest.raises(DownloadError):
+        client.download_month("2024-01")
+
+    assert os.listdir(tmp_path) == []
+
+
+def test_download_month_wraps_network_errors(tmp_path):
+    """A connection problem is reported as DownloadError."""
+    client = TlcClient(FakeConfig(tmp_path))
+    client.session = MagicMock()
+    client.session.get.side_effect = requests.ConnectionError("no connection")
+
+    with pytest.raises(DownloadError):
+        client.download_month("2024-01")
+
+    assert os.listdir(tmp_path) == []
+
+
+def test_download_range_skips_unpublished_months(tmp_path):
+    """Unpublished months are reported as missing, the rest are downloaded."""
+    client = TlcClient(FakeConfig(tmp_path))
+
+    def fake_download(year_month):
+        if year_month == "2024-02":
+            raise MonthNotAvailableError(year_month)
+
+    client.download_month = MagicMock(side_effect=fake_download)
+
+    downloaded, missing = client.download_range("2024-01", "2024-03")
+
+    assert downloaded == ["2024-01", "2024-03"]
+    assert missing == ["2024-02"]
+
+
 
 

@@ -1,8 +1,13 @@
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
+import os
 
+from src.exceptions import IngestError
 from src.clients import month_range
 from src.config import Config
+import logging
+
+logger = logging.getLogger(__name__)
 
 BRONZE_COLUMNS = {
     "VendorID": "int",
@@ -44,11 +49,17 @@ class BronzeIngestor:
                 Spark DataFrame
         """
         path = self.config.raw_file_path(year_month)
+        if not os.path.exists(path):
+            raise IngestError(f"{year_month}: raw file not found: {path}")
         df = self.spark.read.parquet(path)
 
         for name in df.columns:
             if name.lower() == "airport_fee" and name != "Airport_fee":
                 df = df.withColumnRenamed(name, "Airport_fee")
+
+        missing = [c for c in BRONZE_COLUMNS if c not in df.columns]
+        if missing:
+            raise IngestError(f"{year_month}: columns missing in source file: {missing}")
 
         df = df.select(
             *[F.col(n).cast(t).alias(n) for n, t in BRONZE_COLUMNS.items()]
@@ -97,14 +108,22 @@ class BronzeIngestor:
             True if loaded, False if skipped
         """
         if not force and self.is_loaded(year_month):
-            print(f"Already loaded, skipping: {year_month}")
+            logger.info("Already loaded, skipping: %s", year_month)
             return False
-        self._write(self.read_month(year_month), year_month)
-        print(f"Loaded: {year_month}")
+        try:
+            self._write(self.read_month(year_month), year_month)
+        except IngestError:
+            raise
+        except Exception as error:
+            raise IngestError(
+                f"{year_month}: failed to load into {self.config.bronze_table}: {error}"
+            ) from error
+        logger.info("Loaded: %s", year_month)
         return True
 
     def ingest_range(self, start: str, end: str, force: bool = False) -> list[str]:
         """Load every month in the range. Returns the months actually loaded.
+        All months are attempted; if any failed, IngestError is raised at the end.
         Args:
             start: YYYY-MM
             end: YYYY-MM
@@ -112,7 +131,15 @@ class BronzeIngestor:
         Returns:
             list of months actually loaded
         """
-        return [
-            ym for ym in month_range(start, end)
-            if self.ingest_month(ym, force=force)
-        ]
+        logger.info("Ingesting range %s to %s (force=%s)", start, end, force)
+        loaded, failed = [], {}
+        for year_month in month_range(start, end):
+            try:
+                if self.ingest_month(year_month, force=force):
+                    loaded.append(year_month)
+            except IngestError as error:
+                logger.error("Failed: %s", error)
+                failed[year_month] = str(error)
+        if failed:
+            raise IngestError(f"{len(failed)} month(s) failed: {failed}")
+        return loaded

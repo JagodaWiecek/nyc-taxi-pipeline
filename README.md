@@ -18,7 +18,7 @@ revenue and tips.
 **Code**
 - [x] Config class with all project parameters
 - [x] HTTP client that downloads monthly Parquet files into a Databricks Volume
-- [ ] Bronze layer: load raw files into a Delta table (PySpark)
+- [x] Bronze layer: load raw files into a Delta table (PySpark)
 - [ ] Silver layer: cleaning and typing
 - [ ] Gold layer with dbt
 - [ ] Data quality checks
@@ -26,8 +26,9 @@ revenue and tips.
 - [ ] Scheduled Databricks job (no notebooks)
 
 **Tests**
+- [x] Error Handling
 - [x] TLC client (mocked HTTP, no internet needed)
-- [ ] Bronze layer (local Spark session)
+- [x] Bronze layer (local Spark session)
 - [ ] Silver layer (cleaning rules, deduplication)
 - [ ] Gold layer (dbt tests: unique, not_null, relationships)
 - [ ] End-to-end pipeline test on a small sample
@@ -40,8 +41,10 @@ revenue and tips.
 ├── src/
 │   ├── config.py        # central configuration (paths, URLs, date range)
     ├── ingest.py        # BronzeIngestor: loads raw files into the bronze Delta table
+    ├── exceptions.py    # inherit after exception class, to raise custom errors
 │   └── clients.py       # TlcClient: downloads data from the TLC website
 └── tests/
+    ├── test_ingest.py   # unit tests for ingest
     └── test_clients.py  # unit tests for the client
 ```
 
