@@ -21,16 +21,18 @@ revenue and tips.
 - [x] Bronze layer: load raw files into a Delta table (PySpark)
 - [x] Error handling (custom exceptions) and logging
 - [x] Profiling of the bronze data
-- [ ] Silver layer: cleaning and typing
+- [x] Silver layer: cleaning, typing and duplicates
 - [ ] Gold layer with dbt
 - [ ] GitHub Actions CI
 - [ ] Scheduled Databricks job (no notebooks)
 - [ ] Development guide (docs/development.md)
+- [ ] Apply catalog comments as part of the pipeline run (main.py)
 
 **Tests**
 - [x] TLC client (mocked HTTP, no internet needed)
 - [x] Bronze ingestor logic (mocked Spark)
-- [ ] Silver layer (cleaning rules, deduplication)
+- [x] Silver transformer logic (mocked Spark)
+- [ ] Silver cleaning rules on a real Spark session (written, waiting for CI)
 - [ ] Gold layer (dbt tests: unique, not_null, relationships)
 - [ ] End-to-end pipeline test on a small sample
 
@@ -44,12 +46,15 @@ revenue and tips.
 │   ├── config.py            # paths, URLs, date range
 │   ├── clients.py           # TlcClient: downloads files from TLC
 │   ├── ingest.py            # BronzeIngestor: raw files -> bronze table
+│   ├── transform.py         # SilverTransformer: bronze -> silver (cleaning rules)
+│   ├── catalog_docs.py      # table and column comments in Unity Catalog
 │   └── exceptions.py        # custom exceptions
 ├── analysis/
 │   └── bronze_profile.py    # queries behind docs/data_quality.md
 ├── tests/
 │   ├── test_clients.py
-│   └── test_ingest.py
+│   ├── test_ingest.py
+│   └── test_transform.py
 └── docs/
     ├── data_dictionary.md
     └── data_quality.md
@@ -63,13 +68,17 @@ The date range is set in `src/config.py` (currently 2024-01 to 2024-12). Raw fil
 Unity Catalog Volume `workspace.bronze.raw` and loaded into the table
 `workspace.bronze.yellow_trips`.
 
-
+Both bronze and silver are processed **one month at a time**, using the
+`_year_month` column. A new month is processed without recomputing the
+previous ones, and re-running the pipeline skips months that are already
+loaded.
 
 ## Getting started
 
-1. Create the schema and Volume in Databricks:
+1. Create the schemas and the Volume in Databricks (SQL editor):
    ```sql
    CREATE SCHEMA IF NOT EXISTS workspace.bronze;
+   CREATE SCHEMA IF NOT EXISTS workspace.silver;
    CREATE VOLUME IF NOT EXISTS workspace.bronze.raw;
    ```
 2. In a Databricks notebook, download the files and load them into bronze:
@@ -82,8 +91,16 @@ Unity Catalog Volume `workspace.bronze.raw` and loaded into the table
    TlcClient(config).download_range(config.start_month, config.end_month)
    BronzeIngestor(spark, config).ingest_range(config.start_month, config.end_month)
    ```
-   Both steps are idempotent: existing files and loaded months are skipped.
-3. Run the tests locally: `pip install -r requirements-dev.txt`, then `pytest`.
+3. Clean the bronze data into the silver table:
+   ```python
+   from src.transform import SilverTransformer
+
+   SilverTransformer(spark, config).transform_range(config.start_month, config.end_month)
+   ```
+   All steps are idempotent: existing files and months already loaded are
+   skipped. To reprocess months (for example after changing a cleaning rule),
+   pass `force=True` to `ingest_range` or `transform_range`.
+4. Run the tests locally: `pip install -r requirements-dev.txt`, then `pytest`.
 
 Already downloaded files are skipped, so the download can be safely re-run.
 ## Documentation
