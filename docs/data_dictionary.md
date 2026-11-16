@@ -5,6 +5,7 @@
 - the airport fee column name is normalized to `Airport_fee`,
 - a fixed set of source columns is selected,
 - three technical columns are added (`_source_file`, `_year_month`, `_ingested_at`).
+
 | Column | Type | Description |
 |---|---|---|
 | `VendorID` | int | Code of the technology provider that supplied the trip record. |

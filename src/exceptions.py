@@ -8,3 +8,6 @@ class MonthNotAvailableError(DownloadError):
 
 class IngestError(Exception):
     """Raised when a raw file cannot be loaded into the bronze table."""
+
+class SilverError(Exception):
+    """Raised when a month cannot be transformed into the silver table."""
