@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: fct_trips
+    description: "One row per taxi trip from the silver layer, with friendly column names and derived fields."
+    columns:
+      - name: trip_id
+        description: "Hash of all 19 source columns. The source has no trip identifier."
+        tests:
+          - unique
+          - not_null
+      - name: pickup_at
+        description: "Date and time when the meter was engaged."
+        tests:
+          - not_null
+      - name: dropoff_at
+        description: "Date and time when the meter was disengaged."
+        tests:
+          - not_null
+      - name: pickup_date
+        description: "Calendar date of the pickup."
+      - name: pickup_hour
+        description: "Hour of the pickup (0-23)."
+      - name: duration_seconds
+        description: "Trip duration in seconds. Always positive (silver drops impossible durations)."
+        tests:
+          - not_null
+      - name: has_negative_amount
+        description: "True if fare_amount or total_amount is negative."
+        tests:
+          - not_null
+      - name: has_zero_distance
+        description: "True if trip_distance is 0."
+        tests:
+          - not_null

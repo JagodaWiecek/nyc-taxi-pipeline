@@ -23,7 +23,7 @@ class SilverTransformer:
         if not self.spark.catalog.tableExists(self.config.bronze_table):
             raise SilverError(f"Bronze table does not exist: {self.config.bronze_table}")
         df = self.spark.table(self.config.bronze_table).filter(
-            F.col("_year_month") == year_month
+            f"_year_month = '{year_month}'"
         )
         if df.limit(1).count() == 0:
             raise SilverError(f"{year_month}: no rows in the bronze table")
@@ -89,7 +89,7 @@ class SilverTransformer:
             return False
         return (
             self.spark.table(self.config.silver_table)
-            .filter(F.col("_year_month") == year_month)
+            .filter(f"_year_month = '{year_month}'")
             .limit(1)
             .count()
             > 0
@@ -114,7 +114,7 @@ class SilverTransformer:
             self._write(self.clean(bronze), year_month)
             rows_after = (
                 self.spark.table(self.config.silver_table)
-                .filter(F.col("_year_month") == year_month)
+                .filter(f"_year_month = '{year_month}'")
                 .count()
             )
         except SilverError:
