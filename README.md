@@ -22,7 +22,7 @@ revenue and tips.
 - [x] Error handling (custom exceptions) and logging
 - [x] Profiling of the bronze data
 - [x] Silver layer: cleaning, typing and duplicates
-- [ ] Gold layer with dbt
+- [ ] Gold layer with dbt (fct_trips done, dimensions and analysis pending)
 - [ ] GitHub Actions CI
 - [ ] Scheduled Databricks job (no notebooks)
 - [ ] Development guide (docs/development.md)
@@ -55,6 +55,13 @@ revenue and tips.
 │   ├── test_clients.py
 │   ├── test_ingest.py
 │   └── test_transform.py
+├── dbt_project/
+│   ├── dbt_project.yml
+│   ├── profiles.yml         # connection settings read from environment variables
+│   └── models/
+│       ├── sources.yml      # silver table as a dbt source
+│       ├── schema.yml       # descriptions and tests
+│       └── fct_trips.sql    # fact table: one row per trip
 └── docs/
     ├── data_dictionary.md
     └── data_quality.md
@@ -79,28 +86,48 @@ loaded.
    ```sql
    CREATE SCHEMA IF NOT EXISTS workspace.bronze;
    CREATE SCHEMA IF NOT EXISTS workspace.silver;
+   CREATE SCHEMA IF NOT EXISTS workspace.gold;
    CREATE VOLUME IF NOT EXISTS workspace.bronze.raw;
    ```
-2. In a Databricks notebook, download the files and load them into bronze:
+2. In a Databricks notebook, download the files and build bronze and silver:
    ```python
    from src.config import Config
    from src.clients import TlcClient
    from src.ingest import BronzeIngestor
+   from src.transform import SilverTransformer
 
    config = Config()
    TlcClient(config).download_range(config.start_month, config.end_month)
    BronzeIngestor(spark, config).ingest_range(config.start_month, config.end_month)
-   ```
-3. Clean the bronze data into the silver table:
-   ```python
-   from src.transform import SilverTransformer
-
    SilverTransformer(spark, config).transform_range(config.start_month, config.end_month)
    ```
    All steps are idempotent: existing files and months already loaded are
    skipped. To reprocess months (for example after changing a cleaning rule),
    pass `force=True` to `ingest_range` or `transform_range`.
-4. Run the tests locally: `pip install -r requirements-dev.txt`, then `pytest`.
+3. Set up the local environment
+   ```
+   python -m venv .venv
+   .venv\Scripts\activate.bat        # Windows cmd
+   pip install -r requirements-dev.txt
+   ```
+4. Run the tests:
+   ```
+   pytest
+   ```
+5. Build the gold layer with dbt. It needs a running SQL warehouse and a
+   Databricks personal access token. Set the connection details as
+   environment variables (Windows cmd syntax, no quotes; the values stay out of the repository):
+   ```
+   set DATABRICKS_HOST=<server hostname, without https://>
+   set DATABRICKS_HTTP_PATH=<HTTP path of the SQL warehouse>
+   set DATABRICKS_TOKEN=<personal access token>
+   ```
+   Then, from the `dbt_project` folder:
+   ```
+   dbt debug --profiles-dir .
+   dbt run --profiles-dir .
+   dbt test --profiles-dir .
+   ```
 
 Already downloaded files are skipped, so the download can be safely re-run.
 ## Documentation

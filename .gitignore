@@ -3,6 +3,16 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Project scratch files
+temp.ipynb
+draft_*.py
+CreatingVolume.dbquery.ipynb
+
+# dbt
+dbt_packages/
+logs/
+.user.yml
+
 # C extensions
 *.so
 
