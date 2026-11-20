@@ -29,13 +29,18 @@ Table `nulls_by_vendor`: for vendors 1, 2 and 6, the number of nulls in
 is identical.
 
 **Interpretation (hypothesis):** the nulls are a property of the record
-type (`payment_type = 0`), not random entry errors. The nulls are kept in
-silver.
+type (`payment_type = 0`, Flex Fare), not random entry errors. This is
+consistent with Flex Fare trips not reporting these fields; the cause is
+not confirmed. The nulls are kept in silver.
+
+The `payment_type` codes match the TLC Yellow Taxi Data Dictionary
+(18 Mar 2025).
 
 ## Passenger counts (`passenger_count_distribution`)
 
 Values 1-6 cover almost all trips. 401,354 trips report 0 passengers and
-284 trips report 7-9.
+284 trips report 7-9. TLC describes the field as driver-reported and does
+not guarantee its accuracy.
 
 ## Negative fares (`negative_fare_by_payment_type`)
 
@@ -75,6 +80,7 @@ Rows are flagged instead of dropped when they may be real events
 exclude them.
 
 ## Duplicates
+
 With a weak key (vendor, pickup and dropoff time, zones, total amount),
 7 rows repeat. Only 4 groups are identical in all 19 source columns, and
 each lies within a single monthly file. The source has no trip identifier,
@@ -102,6 +108,7 @@ Why not clean the whole table at once:
 
 After changing a cleaning rule, reprocess existing months with
 `transform_range(start, end, force=True)`.
+
 ## Results of the silver layer
 
 Run on the 2024 data. Rows removed by the rules on impossible durations,
@@ -140,3 +147,13 @@ The null count is lower than the 4,492,870 expected from bronze
 (4,091,232 missing + 401,638 outside 1-6) because some of the 13,934
 removed rows had a null or zero passenger count. No row has a dropoff at
 or before its pickup time.
+
+## Taxi zone lookup
+
+Source: TLC `taxi_zone_lookup.csv` (265 rows, `LocationID` 1-265).
+
+- **Zone names are not unique.** `Corona` has IDs 56 and 57; `Governor's Island/Ellis Island/Liberty Island` has IDs 103, 104 and 105. Always join and group on the ID, never on the name.
+- **IDs 264 and 265 are placeholders** (`Unknown` and `Outside of NYC`). In the source, missing values are the text `N/A`; bronze keeps them as is, silver turns them into NULL, and the gold `dim_zone` shows them as `Unknown`.
+- **Silver rule:** `location_id` must be not null and unique, otherwise the load fails with `SilverError` and nothing is written.
+- **Not refreshed automatically:** the file is downloaded once and skipped if it already exists. To pick up a new TLC version, delete the file from the Volume and reload with `force=True`.
+- **To verify in gold:** whether trips reference location IDs outside 1-265 (covered by a dbt `relationships` test).

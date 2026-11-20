@@ -30,6 +30,9 @@ BRONZE_COLUMNS = {
     "congestion_surcharge": "double",
     "Airport_fee": "double",
 }
+
+ZONE_SCHEMA = "LocationID int, Borough string, Zone string, service_zone string"
+
 class BronzeIngestor:
 
     def __init__(self, spark: SparkSession, config: Config):
@@ -119,6 +122,30 @@ class BronzeIngestor:
                 f"{year_month}: failed to load into {self.config.bronze_table}: {error}"
             ) from error
         logger.info("Loaded: %s", year_month)
+        return True
+    
+    def ingest_zone_lookup(self, force: bool = False) -> bool:
+        """Load the taxi zone lookup CSV into its own table.
+        Returns True if loaded, False if skipped. Raises IngestError if the file is missing."""
+        table = self.config.zone_lookup_table
+        if not force and self.spark.catalog.tableExists(table):
+            logger.info("Zone lookup already loaded, skipping: %s", table)
+            return False
+
+        path = self.config.zone_lookup_path
+        if not os.path.exists(path):
+            raise IngestError(f"zone lookup file not found: {path}")
+
+        try:
+            df = (
+                self.spark.read.option("header", True).schema(ZONE_SCHEMA).csv(path)
+                .withColumn("_source_file", F.lit(path))
+                .withColumn("_ingested_at", F.current_timestamp())
+            )
+            df.write.format("delta").mode("overwrite").saveAsTable(table)
+        except Exception as error:
+            raise IngestError(f"zone lookup: failed to load into {table}: {error}") from error
+        logger.info("Loaded zone lookup into %s", table)
         return True
 
     def ingest_range(self, start: str, end: str, force: bool = False) -> list[str]:

@@ -145,6 +145,31 @@ def test_download_range_skips_unpublished_months(tmp_path):
     assert downloaded == ["2024-01", "2024-03"]
     assert missing == ["2024-02"]
 
+def _zone_client(tmp_path):
+    config = MagicMock()
+    config.zone_lookup_url = "https://example.com/taxi_zone_lookup.csv"
+    config.zone_lookup_path = str(tmp_path / "taxi_zone_lookup.csv")
+    client = TlcClient(config)
+    client.session = MagicMock()
+    return client, config
+
+
+def _response(chunks=(b"a,b\n1,2\n",), status=200):
+    response = MagicMock()
+    response.status_code = status
+    response.iter_content.return_value = list(chunks)
+    return response
+
+def test_download_zone_lookup_saves_file_and_skips_when_present(tmp_path):
+    client, config = _zone_client(tmp_path)
+    client.session.get.return_value.__enter__.return_value = _response()
+
+    client.download_zone_lookup()
+    client.download_zone_lookup()
+
+    assert (tmp_path / "taxi_zone_lookup.csv").read_bytes() == b"a,b\n1,2\n"
+    client.session.get.assert_called_once()
+    assert client.session.get.call_args.args[0] == config.zone_lookup_url
 
 
 

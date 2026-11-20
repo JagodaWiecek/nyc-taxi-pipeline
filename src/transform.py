@@ -149,3 +149,49 @@ class SilverTransformer:
         if failed:
             raise SilverError(f"{len(failed)} month(s) failed: {failed}")
         return done
+    
+    @staticmethod
+    def clean_zones(df):
+        """Rename columns, trim text, turn 'N/A' into NULL.
+        Args:
+            df: Spark DataFrame with columns as in ZONE_COLUMNS.
+        Returns:
+            Spark DataFrame with columns as in SILVER_ZONE_COLUMNS.
+        """
+        def text(name: str):
+            trimmed = F.trim(F.col(name))
+            return F.when(trimmed.isin("", "N/A"), F.lit(None)).otherwise(trimmed)
+
+        return df.select(
+            F.col("LocationID").alias("location_id"),
+            text("Borough").alias("borough"),
+            text("Zone").alias("zone"),
+            text("service_zone").alias("service_zone"),
+        )
+
+    def transform_zone_lookup(self, force: bool = False) -> bool:
+        """Bronze zones -> silver zones. Returns True if written, False if skipped."""
+        target = self.config.silver_zone_table
+        if not force and self.spark.catalog.tableExists(target):
+            logger.info("Silver zones already loaded, skipping: %s", target)
+            return False
+
+        try:
+            clean = self.clean_zones(self.spark.table(self.config.zone_lookup_table))
+            total = clean.count()
+            ids = clean.filter("location_id IS NOT NULL").select("location_id").distinct().count()
+            if total == 0 or ids != total:
+                raise SilverError(
+                    f"zone lookup invalid: rows={total}, distinct non-null ids={ids}"
+                )
+            (
+                clean.withColumn("_silver_processed_at", F.current_timestamp())
+                .write.format("delta").mode("overwrite").saveAsTable(target)
+            )
+        except SilverError:
+            raise
+        except Exception as error:
+            raise SilverError(f"zone lookup: failed to write {target}: {error}") from error
+
+        logger.info("Loaded %d zones into %s", total, target)
+        return True

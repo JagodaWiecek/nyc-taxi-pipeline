@@ -15,6 +15,9 @@ class Config:
     dataset: str = "yellow_tripdata"
     start_month: str = "2024-01"
     end_month: str = "2024-12"
+
+    zone_lookup_url: str = "https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv"
+
     @property
     def volume_path(self) -> str:
         return f"/Volumes/{self.catalog}/{self.bronze_schema}/{self.raw_volume}"
@@ -32,3 +35,15 @@ class Config:
 
     def raw_file_path(self, year_month: str) -> str:
         return f"{self.volume_path}/{self.dataset}_{year_month}.parquet"
+    
+    @property
+    def zone_lookup_path(self) -> str:
+        return f"{self.volume_path}/taxi_zone_lookup.csv"
+
+    @property
+    def zone_lookup_table(self) -> str:
+        return f"{self.catalog}.{self.bronze_schema}.taxi_zones"
+    
+    @property
+    def silver_zone_table(self) -> str:
+        return f"{self.catalog}.{self.silver_schema}.taxi_zones"

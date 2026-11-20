@@ -64,20 +64,46 @@ class TlcClient:
         return session
     
     def download_month(self, year_month: str) -> str:
-        """Download one month of data into the raw Volume, skip if present.
+        """Download one month into the raw Volume (skip if present).
         Args:
-            year_month (str): The year and month in 'YYYY-MM' format.
+            year_month (str): The month in 'YYYY-MM' format.
         Returns:
             str: The path to the downloaded file
         """
-        dest_path = self.config.raw_file_path(year_month)
+        return self._download_file(
+            self.config.source_url(year_month),
+            self.config.raw_file_path(year_month),
+            year_month,
+        )
+        
+    def download_zone_lookup(self) -> str:
+        """Download the taxi zone lookup table into the raw Volume (skip if present).
+        Args:
+            None
+        Returns:
+            str: The path to the downloaded file
+        """
+        return self._download_file(
+            self.config.zone_lookup_url,
+            self.config.zone_lookup_path,
+            "taxi_zone_lookup",
+        )
+    
+    def _download_file(self, url: str, dest_path: str, label: str) -> str:
+        """Download url to dest_path (skip if present). Errors are reported with `label`.
+        Args:
+            url (str): The url to download
+            dest_path (str): The path to save the file
+            label (str): The label to use in the error message
+        Returns:
+            str: The path to the downloaded file
+        """
         if os.path.exists(dest_path):
             logger.info("File already exists, skipping: %s", dest_path)
             return dest_path
 
         tmp_path = dest_path + ".tmp"
-        url = self.config.source_url(year_month)
-
+        logger.info("Downloading %s from %s", label, url)
         try:
             with self.session.get(url, stream=True, timeout=self.timeout) as response:
                 response.raise_for_status()
@@ -85,23 +111,23 @@ class TlcClient:
                     for chunk in response.iter_content(chunk_size=1024 * 1024):
                         f.write(chunk)
             if os.path.getsize(tmp_path) == 0:
-                raise DownloadError(f"{year_month}: downloaded file is empty")
+                raise DownloadError(f"{label}: downloaded file is empty")
             os.replace(tmp_path, dest_path)
         except requests.HTTPError as error:
             _remove_file(tmp_path)
             if error.response is not None and error.response.status_code == 404:
-                raise MonthNotAvailableError(f"{year_month}: not published (404)") from error
-            raise DownloadError(f"{year_month}: HTTP error: {error}") from error
+                raise MonthNotAvailableError(f"{label}: not published (404)") from error
+            raise DownloadError(f"{label}: HTTP error: {error}") from error
         except (requests.RequestException, OSError) as error:
             _remove_file(tmp_path)
-            raise DownloadError(f"{year_month}: download failed: {error}") from error
+            raise DownloadError(f"{label}: download failed: {error}") from error
         except DownloadError:
             _remove_file(tmp_path)
             raise
 
         logger.info("Downloaded: %s", dest_path)
         return dest_path
-        
+
     def download_range(self, start: str, end: str) -> tuple[list[str], list[str]]:
         """Download every month in the range; months not published yet are skipped.
         Args:

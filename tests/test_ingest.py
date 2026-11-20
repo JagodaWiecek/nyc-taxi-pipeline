@@ -1,9 +1,10 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import pytest
 
 from src.config import Config
 from src.ingest import BronzeIngestor
 from src.exceptions import IngestError
+
 
 def _make_ingestor():
     """Build an ingestor with a fake Spark session, which means nothing real is executed."""
@@ -140,6 +141,33 @@ def test_ingest_range_continues_after_failure_and_raises_at_the_end():
 
     assert ingestor._write.call_count == 2
 
+def _zone_ingestor(tmp_path, file_exists=True, table_exists=False):
+    spark = MagicMock()
+    spark.catalog.tableExists.return_value = table_exists
+    config = MagicMock()
+    config.zone_lookup_table = "workspace.bronze.taxi_zones"
+    path = tmp_path / "taxi_zone_lookup.csv"
+    if file_exists:
+        path.write_text("LocationID,Borough,Zone,service_zone\n1,EWR,Newark Airport,EWR\n")
+    config.zone_lookup_path = str(path)
+    return BronzeIngestor(spark, config), spark
+
+def test_ingest_zone_lookup_writes_table(tmp_path):
+    ingestor, spark = _zone_ingestor(tmp_path)
+
+    with patch("src.ingest.F"):
+        assert ingestor.ingest_zone_lookup() is True
+
+    df = spark.read.option.return_value.schema.return_value.csv.return_value
+    save = df.withColumn.return_value.withColumn.return_value.write.format.return_value.mode.return_value.saveAsTable
+    save.assert_called_once_with("workspace.bronze.taxi_zones")
+
+
+def test_ingest_zone_lookup_skips_when_table_exists(tmp_path):
+    ingestor, spark = _zone_ingestor(tmp_path, table_exists=True)
+
+    assert ingestor.ingest_zone_lookup() is False
+    spark.read.option.assert_not_called()
     
 
 
