@@ -6,3 +6,4 @@ sources:
     schema: silver
     tables:
       - name: yellow_trips
+      - name: taxi_zones

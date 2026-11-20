@@ -33,3 +33,26 @@ models:
         description: "True if trip_distance is 0."
         tests:
           - not_null
+      - name: pickup_zone_id
+        description: "TLC taxi zone where the trip started."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_zone')
+                field: location_id
+      - name: dropoff_zone_id
+        description: "TLC taxi zone where the trip ended."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_zone')
+                field: location_id
+              field: location_id
+  - name: dim_zone
+    description: "NYC taxi zones, one row per LocationID. Missing names are shown as 'Unknown'."
+    columns:
+      - name: location_id
+        description: "TLC taxi zone ID, matches the pickup and dropoff zone IDs in fct_trips."
+        tests:
+          - unique
+          - not_null

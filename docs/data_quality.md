@@ -156,4 +156,4 @@ Source: TLC `taxi_zone_lookup.csv` (265 rows, `LocationID` 1-265).
 - **IDs 264 and 265 are placeholders** (`Unknown` and `Outside of NYC`). In the source, missing values are the text `N/A`; bronze keeps them as is, silver turns them into NULL, and the gold `dim_zone` shows them as `Unknown`.
 - **Silver rule:** `location_id` must be not null and unique, otherwise the load fails with `SilverError` and nothing is written.
 - **Not refreshed automatically:** the file is downloaded once and skipped if it already exists. To pick up a new TLC version, delete the file from the Volume and reload with `force=True`.
-- **To verify in gold:** whether trips reference location IDs outside 1-265 (covered by a dbt `relationships` test).
+- **Verified in gold:** every pickup and dropoff zone ID in `fct_trips` exists in `dim_zone` (dbt `relationships` tests, 2024 data).
