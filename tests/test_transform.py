@@ -1,10 +1,11 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from src.config import Config
 from src.exceptions import SilverError
 from src.transform import SilverTransformer
+
 
 
 def _make_transformer():
@@ -123,3 +124,34 @@ def test_is_loaded_returns_false_when_silver_table_does_not_exist():
     assert transformer.is_loaded("2024-01") is False
 
     transformer.spark.table.assert_not_called()
+
+def _zone_transformer(total=265, ids=265, table_exists=False):
+    spark = MagicMock()
+    spark.catalog.tableExists.return_value = table_exists
+    config = MagicMock()
+    config.zone_lookup_table = "workspace.bronze.taxi_zones"
+    config.silver_zone_table = "workspace.silver.taxi_zones"
+
+    clean = MagicMock()
+    clean.count.return_value = total
+    clean.filter.return_value.select.return_value.distinct.return_value.count.return_value = ids
+    return SilverTransformer(spark, config), spark, clean
+
+def test_transform_zone_lookup_writes_valid_table():
+    transformer, spark, clean = _zone_transformer()
+
+    with patch.object(SilverTransformer, "clean_zones", return_value=clean), patch("src.transform.F"):
+        assert transformer.transform_zone_lookup() is True
+
+    save = clean.withColumn.return_value.write.format.return_value.mode.return_value.saveAsTable
+    save.assert_called_once_with("workspace.silver.taxi_zones")
+
+
+def test_transform_zone_lookup_rejects_duplicate_ids():
+    transformer, _, clean = _zone_transformer(total=265, ids=264)
+
+    with patch.object(SilverTransformer, "clean_zones", return_value=clean), patch("src.transform.F"):
+        with pytest.raises(SilverError):
+            transformer.transform_zone_lookup()
+
+    clean.withColumn.assert_not_called()

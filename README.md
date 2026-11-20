@@ -71,14 +71,19 @@ revenue and tips.
 ## Data
 
 Source: [NYC TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page) (yellow taxi, one Parquet file per month). Files are stored in the Unity Catalog Volume `workspace.bronze.raw`.
-The date range is set in `src/config.py` (currently 2024-01 to 2024-12). Raw files are stored in the
-Unity Catalog Volume `workspace.bronze.raw` and loaded into the table
-`workspace.bronze.yellow_trips`.
+The date range is set in `src/config.py` (currently 2024-01 to 2024-12).
+| Table | Layer | Content |
+|---|---|---|
+| `workspace.bronze.yellow_trips` | bronze | trips as received |
+| `workspace.bronze.taxi_zones` | bronze | taxi zone lookup as received |
+| `workspace.silver.yellow_trips` | silver | cleaned trips with quality flags |
+| `workspace.silver.taxi_zones` | silver | cleaned zone lookup |
+| `workspace.gold.fct_trips` | gold | one row per trip (dbt) |
 
 Both bronze and silver are processed **one month at a time**, using the
 `_year_month` column. A new month is processed without recomputing the
 previous ones, and re-running the pipeline skips months that are already
-loaded.
+loaded. The zone lookup is a single small file, loaded once.
 
 ## Getting started
 
@@ -100,10 +105,16 @@ loaded.
    TlcClient(config).download_range(config.start_month, config.end_month)
    BronzeIngestor(spark, config).ingest_range(config.start_month, config.end_month)
    SilverTransformer(spark, config).transform_range(config.start_month, config.end_month)
+
+   TlcClient(config).download_zone_lookup()
+   BronzeIngestor(spark, config).ingest_zone_lookup()
+   SilverTransformer(spark, config).transform_zone_lookup()
    ```
    All steps are idempotent: existing files and months already loaded are
    skipped. To reprocess months (for example after changing a cleaning rule),
    pass `force=True` to `ingest_range` or `transform_range`.
+
+   The zone lookup is skipped once loaded. To refresh it, delete taxi_zone_lookup.csv from the Volume and call the two zone methods again (with force=True for the table).
 3. Set up the local environment
    ```
    python -m venv .venv
