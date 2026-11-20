@@ -22,7 +22,7 @@ revenue and tips.
 - [x] Error handling (custom exceptions) and logging
 - [x] Profiling of the bronze data
 - [x] Silver layer: cleaning, typing and duplicates
-- [ ] Gold layer with dbt (fct_trips done, dimensions and analysis pending)
+- [ ] Gold layer with dbt (fct_trips and dim_zone done, other dimensions and analysis pending)
 - [ ] GitHub Actions CI
 - [ ] Scheduled Databricks job (no notebooks)
 - [ ] Development guide (docs/development.md)
@@ -33,7 +33,7 @@ revenue and tips.
 - [x] Bronze ingestor logic (mocked Spark)
 - [x] Silver transformer logic (mocked Spark)
 - [ ] Silver cleaning rules on a real Spark session (written, waiting for CI)
-- [ ] Gold layer (dbt tests: unique, not_null, relationships)
+- [x] Gold layer (dbt tests: unique, not_null, relationships)
 - [ ] End-to-end pipeline test on a small sample
 
 ## Project structure
@@ -61,7 +61,8 @@ revenue and tips.
 │   └── models/
 │       ├── sources.yml      # silver table as a dbt source
 │       ├── schema.yml       # descriptions and tests
-│       └── fct_trips.sql    # fact table: one row per trip
+│       ├── fct_trips.sql    # fact table: one row per trip
+│       └── dim_zone.sql     # dimension: taxi zones
 └── docs/
     ├── data_dictionary.md
     └── data_quality.md
@@ -79,6 +80,7 @@ The date range is set in `src/config.py` (currently 2024-01 to 2024-12).
 | `workspace.silver.yellow_trips` | silver | cleaned trips with quality flags |
 | `workspace.silver.taxi_zones` | silver | cleaned zone lookup |
 | `workspace.gold.fct_trips` | gold | one row per trip (dbt) |
+| `workspace.gold.dim_zone` | gold | taxi zones, one row per zone (dbt) |
 
 Both bronze and silver are processed **one month at a time**, using the
 `_year_month` column. A new month is processed without recomputing the
