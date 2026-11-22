@@ -1,0 +1,13 @@
+version: 2
+
+seeds:
+  - name: dim_payment_type
+    description: "TLC payment type codes (Yellow Taxi Data Dictionary, 18 Mar 2025)."
+    columns:
+      - name: payment_type_id
+        description: "Payment type code, as used in fct_trips.payment_type."
+        tests:
+          - unique
+          - not_null
+      - name: payment_type_name
+        description: "Name of the payment type."

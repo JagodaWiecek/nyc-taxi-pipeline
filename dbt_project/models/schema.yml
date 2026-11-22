@@ -47,6 +47,13 @@ models:
               arguments:
                 to: ref('dim_zone')
                 field: location_id
+      - name: payment_type
+        description: "How the passenger paid (code, see dim_payment_type)."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_payment_type')
+                field: payment_type_id
   - name: dim_zone
     description: "NYC taxi zones, one row per LocationID. Missing names are shown as 'Unknown'."
     columns:
@@ -55,3 +62,9 @@ models:
         tests:
           - unique
           - not_null
+      - name: borough
+        description: "Borough of the zone. 'Unknown' where the source has no value."
+      - name: zone
+        description: "Zone name. Not unique (e.g. Corona has IDs 56 and 57), so always join on location_id."
+      - name: service_zone
+        description: "TLC service zone, e.g. Yellow Zone, Boro Zone, Airports. 'Unknown' where the source has no value."

@@ -7,3 +7,11 @@ model-paths: ["models"]
 models:
   nyc_taxi:
     +materialized: table
+    +persist_docs:
+      relation: true
+      columns: true
+seeds:
+  nyc_taxi:
+    +persist_docs:
+      relation: true
+      columns: true

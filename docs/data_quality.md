@@ -157,3 +157,12 @@ Source: TLC `taxi_zone_lookup.csv` (265 rows, `LocationID` 1-265).
 - **Silver rule:** `location_id` must be not null and unique, otherwise the load fails with `SilverError` and nothing is written.
 - **Not refreshed automatically:** the file is downloaded once and skipped if it already exists. To pick up a new TLC version, delete the file from the Volume and reload with `force=True`.
 - **Verified in gold:** every pickup and dropoff zone ID in `fct_trips` exists in `dim_zone` (dbt `relationships` tests, 2024 data).
+
+## Gold layer checks
+
+dbt tests (`dbt build`) run on the gold tables. On the 2024 data all of them pass:
+
+- `fct_trips.trip_id` is unique and not null: one row per distinct trip, 41,155,786 rows, the same as silver.
+- Every pickup and dropoff zone ID in `fct_trips` exists in `dim_zone`, and no trip has an empty zone ID.
+- Every `payment_type` in `fct_trips` has a match in `dim_payment_type` (codes 0-6 from the TLC data dictionary).
+- `duration_seconds`, `has_negative_amount` and `has_zero_distance` are never null.
