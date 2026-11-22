@@ -97,3 +97,29 @@ models:
         description: "Shortest trip in this date and hour, in seconds."
       - name: max_duration_seconds
         description: "Longest trip in this date and hour, in seconds. Often an outlier."
+  - name: agg_trips_by_zone
+    description: "Trips, revenue and distance per taxi zone and role (pickup or dropoff). Revenue is the net total_amount, including negative adjustments, excluding cash tips."
+    columns:
+      - name: zone_role
+        description: "Whether the zone is the trip's pickup or dropoff location. Each trip appears once per role, so never sum trips across both roles."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['pickup', 'dropoff']
+      - name: zone_id
+        description: "TLC taxi zone ID, in dim_zone."
+        tests:
+          - not_null
+      - name: borough
+        description: "Borough of the zone."
+      - name: zone
+        description: "Zone name. Not unique, group by zone_id."
+      - name: trips
+        description: "Number of trips starting (pickup) or ending (dropoff) in the zone."
+        tests:
+          - not_null
+      - name: total_revenue
+        description: "Sum of total_amount. Net of negative adjustments, excludes cash tips."
+      - name: total_distance_miles
+        description: "Sum of trip_distance in miles."

@@ -22,7 +22,7 @@ revenue and tips.
 - [x] Error handling (custom exceptions) and logging
 - [x] Profiling of the bronze data
 - [x] Silver layer: cleaning, typing and duplicates
-- [ ] Gold layer with dbt (fct_trips and dim_zone done, other dimensions and analysis pending)
+- [ ] Gold layer with dbt (fct_trips, dim_zone, dim_payment_type and aggregates for questions 1-2 done; questions 3-4 pending)
 - [ ] GitHub Actions CI
 - [ ] Zone geometry from the TLC shapefile (maps and zone area)
 - [ ] Scheduled Databricks job (no notebooks)
@@ -61,15 +61,16 @@ revenue and tips.
 │   ├── profiles.yml         # connection settings read from environment variables
 │   ├── seeds/
 │   │   └── dim_payment_type.csv   # payment type codes (dbt seed)
-│   └── tests/
-│   │   └── agg_demand_matches_fct_trips.sql   # aggregate vs fact row count
+│   ├── tests/
+│   │   ├── agg_demand_matches_fct_trips.sql
+│   │   └── agg_trips_by_zone_matches_fct_trips.sql
 │   └── models/
 │       ├── sources.yml      # silver table as a dbt source
 │       ├── schema.yml       # descriptions and tests
 │       ├── fct_trips.sql    # fact table: one row per trip
 │       ├── dim_zone.sql
-│       └── agg_demand_by_hour.sql 
-
+│       ├── agg_demand_by_hour.sql   # trips per date and hour (question 1)
+│       └── agg_trips_by_zone.sql    # trips and revenue per zone (question 2)
 └── docs/
     ├── data_dictionary.md
     └── data_quality.md
@@ -89,6 +90,8 @@ The date range is set in `src/config.py` (currently 2024-01 to 2024-12).
 | `workspace.gold.fct_trips` | gold | one row per trip (dbt) |
 | `workspace.gold.dim_zone` | gold | taxi zones, one row per zone (dbt) |
 | `workspace.gold.dim_payment_type` | gold | payment type codes and names (dbt seed) |
+| `workspace.gold.agg_demand_by_hour` | gold | trips and duration stats per date and hour (question 1) |
+| `workspace.gold.agg_trips_by_zone` | gold | trips, revenue and distance per zone and role (question 2) |
 
 Both bronze and silver are processed **one month at a time**, using the
 `_year_month` column. A new month is processed without recomputing the
