@@ -47,7 +47,6 @@ models:
               arguments:
                 to: ref('dim_zone')
                 field: location_id
-              field: location_id
   - name: dim_zone
     description: "NYC taxi zones, one row per LocationID. Missing names are shown as 'Unknown'."
     columns:
