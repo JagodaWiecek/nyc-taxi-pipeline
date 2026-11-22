@@ -49,3 +49,18 @@ Loaded from TLC `taxi_zone_lookup.csv`. Bronze (`workspace.bronze.taxi_zones`) k
 | `Borough` | `borough` | Borough of the zone. |
 | `Zone` | `zone` | Zone name. Not unique, always join on the ID. |
 | `service_zone` | `service_zone` | TLC service zone. |
+
+## Gold layer (dbt)
+
+Column descriptions are in `dbt_project/models/schema.yml` and in Unity Catalog.
+
+| Table | One row per | Purpose |
+|---|---|---|
+| `fct_trips` | trip | Trips with friendly column names, duration, pickup date and hour, and quality flags. |
+| `dim_zone` | taxi zone | Zone names and boroughs. |
+| `dim_payment_type` | payment type code | Names of the TLC payment codes 0-6 (dbt seed). |
+| `agg_demand_by_hour` | pickup date and hour | Business question 1: demand. |
+| `agg_trips_by_zone` | zone and role (pickup or dropoff) | Business question 2: trips and revenue by location. |
+
+- In `agg_trips_by_zone` every trip is counted twice: once in its pickup zone and once in its dropoff zone.
+- `total_revenue` includes negative adjustments and excludes cash tips, which are not recorded in the source.

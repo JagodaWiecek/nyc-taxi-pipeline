@@ -47,7 +47,13 @@ models:
               arguments:
                 to: ref('dim_zone')
                 field: location_id
-              field: location_id
+      - name: payment_type
+        description: "How the passenger paid (code, see dim_payment_type)."
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_payment_type')
+                field: payment_type_id
   - name: dim_zone
     description: "NYC taxi zones, one row per LocationID. Missing names are shown as 'Unknown'."
     columns:
@@ -56,3 +62,64 @@ models:
         tests:
           - unique
           - not_null
+      - name: borough
+        description: "Borough of the zone. 'Unknown' where the source has no value."
+      - name: zone
+        description: "Zone name. Not unique (e.g. Corona has IDs 56 and 57), so always join on location_id."
+      - name: service_zone
+        description: "TLC service zone, e.g. Yellow Zone, Boro Zone, Airports. 'Unknown' where the source has no value."
+  - name: agg_demand_by_hour
+    description: "Trips per pickup date and hour (one row per date and hour). Answers business question 1 (demand)."
+    columns:
+      - name: pickup_date
+        description: "Calendar date of the pickup."
+        tests:
+          - not_null
+      - name: pickup_hour
+        description: "Hour of the pickup (0-23)."
+        tests:
+          - not_null
+      - name: trips
+        description: "Number of trips in that hour."
+        tests:
+          - not_null
+      - name: avg_duration_seconds
+        description: "Average trip duration in seconds."
+      - name: total_duration_seconds
+        description: "Sum of trip durations in seconds. Use it with trips to compute exact averages across groups of rows."
+      - name: avg_duration_seconds
+        description: "Average trip duration in seconds for this date and hour. Do not average it across rows without weighting by trips."
+      - name: median_duration_seconds
+        description: "Median trip duration in seconds for this date and hour. Cannot be combined across rows."
+      - name: p90_duration_seconds
+        description: "90th percentile of trip duration in seconds for this date and hour. Cannot be combined across rows."
+      - name: min_duration_seconds
+        description: "Shortest trip in this date and hour, in seconds."
+      - name: max_duration_seconds
+        description: "Longest trip in this date and hour, in seconds. Often an outlier."
+  - name: agg_trips_by_zone
+    description: "Trips, revenue and distance per taxi zone and role (pickup or dropoff). Revenue is the net total_amount, including negative adjustments, excluding cash tips."
+    columns:
+      - name: zone_role
+        description: "Whether the zone is the trip's pickup or dropoff location. Each trip appears once per role, so never sum trips across both roles."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['pickup', 'dropoff']
+      - name: zone_id
+        description: "TLC taxi zone ID, in dim_zone."
+        tests:
+          - not_null
+      - name: borough
+        description: "Borough of the zone."
+      - name: zone
+        description: "Zone name. Not unique, group by zone_id."
+      - name: trips
+        description: "Number of trips starting (pickup) or ending (dropoff) in the zone."
+        tests:
+          - not_null
+      - name: total_revenue
+        description: "Sum of total_amount. Net of negative adjustments, excludes cash tips."
+      - name: total_distance_miles
+        description: "Sum of trip_distance in miles."
