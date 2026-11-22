@@ -68,3 +68,32 @@ models:
         description: "Zone name. Not unique (e.g. Corona has IDs 56 and 57), so always join on location_id."
       - name: service_zone
         description: "TLC service zone, e.g. Yellow Zone, Boro Zone, Airports. 'Unknown' where the source has no value."
+  - name: agg_demand_by_hour
+    description: "Trips per pickup date and hour (one row per date and hour). Answers business question 1 (demand)."
+    columns:
+      - name: pickup_date
+        description: "Calendar date of the pickup."
+        tests:
+          - not_null
+      - name: pickup_hour
+        description: "Hour of the pickup (0-23)."
+        tests:
+          - not_null
+      - name: trips
+        description: "Number of trips in that hour."
+        tests:
+          - not_null
+      - name: avg_duration_seconds
+        description: "Average trip duration in seconds."
+      - name: total_duration_seconds
+        description: "Sum of trip durations in seconds. Use it with trips to compute exact averages across groups of rows."
+      - name: avg_duration_seconds
+        description: "Average trip duration in seconds for this date and hour. Do not average it across rows without weighting by trips."
+      - name: median_duration_seconds
+        description: "Median trip duration in seconds for this date and hour. Cannot be combined across rows."
+      - name: p90_duration_seconds
+        description: "90th percentile of trip duration in seconds for this date and hour. Cannot be combined across rows."
+      - name: min_duration_seconds
+        description: "Shortest trip in this date and hour, in seconds."
+      - name: max_duration_seconds
+        description: "Longest trip in this date and hour, in seconds. Often an outlier."

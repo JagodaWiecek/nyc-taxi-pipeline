@@ -61,11 +61,15 @@ revenue and tips.
 │   ├── profiles.yml         # connection settings read from environment variables
 │   ├── seeds/
 │   │   └── dim_payment_type.csv   # payment type codes (dbt seed)
+│   └── tests/
+│   │   └── agg_demand_matches_fct_trips.sql   # aggregate vs fact row count
 │   └── models/
 │       ├── sources.yml      # silver table as a dbt source
 │       ├── schema.yml       # descriptions and tests
 │       ├── fct_trips.sql    # fact table: one row per trip
-│       └── dim_zone.sql     # dimension: taxi zones
+│       ├── dim_zone.sql
+│       └── agg_demand_by_hour.sql 
+
 └── docs/
     ├── data_dictionary.md
     └── data_quality.md
