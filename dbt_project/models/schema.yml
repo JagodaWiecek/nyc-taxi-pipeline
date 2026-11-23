@@ -33,6 +33,10 @@ models:
         description: "True if trip_distance is 0."
         tests:
           - not_null
+      - name: has_outlier_distance
+        description: "True if trip_distance is above 100 miles (likely a recording error)."
+        tests:
+          - not_null
       - name: pickup_zone_id
         description: "TLC taxi zone where the trip started."
         tests:

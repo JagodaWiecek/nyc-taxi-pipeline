@@ -22,13 +22,13 @@ revenue and tips.
 - [x] Error handling (custom exceptions) and logging
 - [x] Profiling of the bronze data
 - [x] Silver layer: cleaning, typing and duplicates
-- [ ] Gold layer with dbt
+- [x] Gold layer with dbt
   - [x] Fact table (`fct_trips`)
   - [x] Dimensions (`dim_zone`, `dim_payment_type`)
   - [x] Question 1: demand (aggregate and reports)
   - [x] Question 2: locations (aggregate and reports)
   - [x] Question 3: revenue and tips (aggregate and reports)
-  - [ ] Question 4: efficiency (aggregate and reports)
+  - [x] Question 4: efficiency (aggregate and reports)
   - [x] Table and column descriptions in Unity Catalog (`persist_docs`)
 - [ ] Analysis write-up with charts (docs/analysis.md)
 - [ ] GitHub Actions CI

@@ -26,5 +26,6 @@ select
     tip_amount,
     total_amount,
     has_negative_amount,
+    has_outlier_distance,
     has_zero_distance
 from {{ source('silver', 'yellow_trips') }}

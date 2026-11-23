@@ -62,6 +62,12 @@ Of 776,305 trips with zero distance, 714,784 (92%) have a positive fare
 and 373,124 (48%) start and end in the same zone. The remaining 52% start
 and end in different zones, which contradicts a distance of zero.
 
+## Outlier distances
+
+The longest recorded trip is 398,609 miles, while 99.9% of trips are shorter than 30 miles. Trips above 100 miles are only 0.004% of all trips, but they dominated distance-based averages: in the first version of the efficiency report they made up about 70% of all miles driven at 5-7 am and about 23% at noon, giving an average speed of 72.8 mph at 5 am. After excluding them, average speeds are 10-21 mph.
+
+Silver flags these trips as `has_outlier_distance` (threshold `max_trip_distance_miles` in `src/config.py`). The efficiency model excludes them; the other models keep them, as their results do not depend on distance values.
+
 ## Decisions for the silver layer
 
 | Case | Rows (2024) | Decision |
@@ -74,6 +80,7 @@ and end in different zones, which contradicts a distance of zero.
 | `passenger_count` already null | 4,091,232 | kept as is |
 | Rows identical in all 19 source columns | 4 surplus | **deduplicated** (one copy kept) |
 | Processing unit | one month | **per-month processing**, like bronze |
+| `trip_distance` above 100 miles | 1,612 | **kept**, flagged `has_outlier_distance` |
 
 Rows are flagged instead of dropped when they may be real events
 (for example disputed trips). Gold models decide per question whether to
@@ -142,6 +149,7 @@ are flagged or set to null.
 | `has_negative_amount` = true | 733,825 | 1.78% |
 | `has_zero_distance` = true | 765,175 | 1.86% |
 | `passenger_count` is null | 4,488,450 | 10.91% |
+| `has_outlier_distance` = true | 1,612 | 0.004% |
 
 The null count is lower than the 4,492,870 expected from bronze
 (4,091,232 missing + 401,638 outside 1-6) because some of the 13,934
@@ -168,4 +176,4 @@ dbt tests (`dbt build`) run on the gold tables. On the 2024 data all of them pas
 - `duration_seconds`, `has_negative_amount` and `has_zero_distance` are never null.
 - Aggregates match the fact table: the sum of trips in `agg_demand_by_hour` equals the rows of `fct_trips`, and in `agg_trips_by_zone` each role (pickup, dropoff) contains all trips (custom dbt tests in `dbt_project/tests/`).
 - No trip has a negative or missing `trip_distance` or a missing `payment_type` (`not_null` tests on `agg_revenue_and_tips`).
-- `agg_efficiency_by_zone_hour` excludes trips flagged `has_zero_distance` or `has_negative_amount`: 1,442,800 trips (3.5%), leaving 39,712,986. 56,200 trips carry both flags.
+- `agg_efficiency_by_zone_hour` excludes trips flagged `has_zero_distance`, `has_negative_amount` or `has_outlier_distance`: 1,444,307 trips (3.5%), leaving 39,711,479.
