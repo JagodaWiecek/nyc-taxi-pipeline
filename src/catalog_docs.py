@@ -45,6 +45,7 @@ SILVER_COLUMN_COMMENTS = {
     "passenger_count": "Number of passengers (1-6), driver-reported. Null if missing or outside 1-6 in the source.",
     "has_negative_amount": "True if fare_amount or total_amount is negative.",
     "has_zero_distance": "True if trip_distance is 0.",
+    "has_outlier_distance": "True if trip_distance is above 100 miles (implausible for a taxi trip, likely a recording error).",
     "_silver_processed_at": "When the row was written to the silver table.",
 }
 # ---------------------------------------------------------------------------
