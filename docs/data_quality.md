@@ -167,3 +167,4 @@ dbt tests (`dbt build`) run on the gold tables. On the 2024 data all of them pas
 - Every `payment_type` in `fct_trips` has a match in `dim_payment_type` (codes 0-6 from the TLC data dictionary).
 - `duration_seconds`, `has_negative_amount` and `has_zero_distance` are never null.
 - Aggregates match the fact table: the sum of trips in `agg_demand_by_hour` equals the rows of `fct_trips`, and in `agg_trips_by_zone` each role (pickup, dropoff) contains all trips (custom dbt tests in `dbt_project/tests/`).
+- No trip has a negative or missing `trip_distance` or a missing `payment_type` (`not_null` tests on `agg_revenue_and_tips`).

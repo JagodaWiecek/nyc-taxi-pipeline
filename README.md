@@ -22,9 +22,16 @@ revenue and tips.
 - [x] Error handling (custom exceptions) and logging
 - [x] Profiling of the bronze data
 - [x] Silver layer: cleaning, typing and duplicates
-- [ ] Gold layer with dbt (fct_trips, dim_zone, dim_payment_type and aggregates for questions 1-2 done; questions 3-4 pending)
+- [ ] Gold layer with dbt
+  - [x] Fact table (`fct_trips`)
+  - [x] Dimensions (`dim_zone`, `dim_payment_type`)
+  - [x] Question 1: demand (aggregate and reports)
+  - [x] Question 2: locations (aggregate and reports)
+  - [x] Question 3: revenue and tips (aggregate and reports)
+  - [ ] Question 4: efficiency (aggregate and reports)
+  - [x] Table and column descriptions in Unity Catalog (`persist_docs`)
+- [ ] Analysis write-up with charts (docs/analysis.md)
 - [ ] GitHub Actions CI
-- [ ] Zone geometry from the TLC shapefile (maps and zone area)
 - [ ] Scheduled Databricks job (no notebooks)
 - [ ] Development guide (docs/development.md)
 - [ ] Apply catalog comments as part of the pipeline run (main.py)
@@ -35,7 +42,11 @@ revenue and tips.
 - [x] Silver transformer logic (mocked Spark)
 - [ ] Silver cleaning rules on a real Spark session (written, waiting for CI)
 - [x] Gold layer (dbt tests: unique, not_null, relationships)
+- [x] Aggregates match the fact table (custom dbt tests)
 - [ ] End-to-end pipeline test on a small sample
+
+**Later ideas**
+- [ ] Zone geometry from the TLC shapefile (maps and zone area)
 
 ## Project structure
 ```
@@ -69,11 +80,14 @@ revenue and tips.
 │       ├── schema.yml       # descriptions and tests
 │       ├── fct_trips.sql    # fact table: one row per trip
 │       ├── dim_zone.sql
-│       ├── agg_demand_by_hour.sql   # trips per date and hour (question 1)
-│       └── agg_trips_by_zone.sql    # trips and revenue per zone (question 2)
+│       ├── agg_demand_by_hour.sql      # aggregate for question 1
+│       ├── agg_trips_by_zone.sql       # aggregate for question 2
+│       ├── agg_revenue_and_tips.sql    # aggregate for question 3
+│       └── reports/         # rpt_ tables: answers to the business questions
 └── docs/
     ├── data_dictionary.md
-    └── data_quality.md
+    ├──data_quality.md
+    └──
     
 ```
 
@@ -90,8 +104,8 @@ The date range is set in `src/config.py` (currently 2024-01 to 2024-12).
 | `workspace.gold.fct_trips` | gold | one row per trip (dbt) |
 | `workspace.gold.dim_zone` | gold | taxi zones, one row per zone (dbt) |
 | `workspace.gold.dim_payment_type` | gold | payment type codes and names (dbt seed) |
-| `workspace.gold.agg_demand_by_hour` | gold | trips and duration stats per date and hour (question 1) |
-| `workspace.gold.agg_trips_by_zone` | gold | trips, revenue and distance per zone and role (question 2) |
+| `workspace.gold.agg_*` | gold | trips summed per question (hour, zone, payment type and distance) |
+| `workspace.gold.rpt_*` | gold | answers to the business questions, one table per chart |
 
 Both bronze and silver are processed **one month at a time**, using the
 `_year_month` column. A new month is processed without recomputing the
