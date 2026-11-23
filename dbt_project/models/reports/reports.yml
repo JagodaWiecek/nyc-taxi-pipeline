@@ -19,3 +19,7 @@ models:
     description: "Question 3: tip as a percentage of fare by pickup hour (card payments only)."
   - name: rpt_revenue_by_payment_type
     description: "Question 3: fare and revenue per trip by payment type."
+  - name: rpt_efficiency_by_hour
+    description: "Question 4: average distance, duration, fare per mile and speed by pickup hour. Excludes trips with quality flags."
+  - name: rpt_efficiency_by_zone
+    description: "Question 4: average distance, duration, fare per mile and speed by pickup zone. Excludes trips with quality flags."
