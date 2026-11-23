@@ -18,6 +18,8 @@ class Config:
 
     zone_lookup_url: str = "https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv"
 
+    max_trip_distance_miles: float = 100.0
+
     @property
     def volume_path(self) -> str:
         return f"/Volumes/{self.catalog}/{self.bronze_schema}/{self.raw_volume}"

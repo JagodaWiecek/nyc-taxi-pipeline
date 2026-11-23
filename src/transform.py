@@ -30,7 +30,7 @@ class SilverTransformer:
         return df
 
     @staticmethod
-    def clean(df: DataFrame) -> DataFrame:
+    def clean(df: DataFrame, max_trip_distance_miles: float) -> DataFrame:
         """Apply the silver rules, which are listed in docs/data_quality.md.
         Args:
             df: Spark DataFrame with columns as in BRONZE_COLUMNS.
@@ -60,7 +60,8 @@ class SilverTransformer:
         df = df.withColumn(
             "has_zero_distance",
             F.coalesce(F.col("trip_distance") == 0, F.lit(False)),
-        )
+        ).withColumn("has_outlier_distance", F.col("trip_distance") > max_trip_distance_miles)
+
         return df.withColumn("_silver_processed_at", F.current_timestamp())
     
     def _write(self, df: DataFrame, year_month: str) -> None:
@@ -111,7 +112,7 @@ class SilverTransformer:
         try:
             bronze = self.read_bronze_month(year_month)
             rows_before = bronze.count()
-            self._write(self.clean(bronze), year_month)
+            self._write(self.clean(bronze, self.config.max_trip_distance_miles), year_month)
             rows_after = (
                 self.spark.table(self.config.silver_table)
                 .filter(f"_year_month = '{year_month}'")

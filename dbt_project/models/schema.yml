@@ -33,6 +33,10 @@ models:
         description: "True if trip_distance is 0."
         tests:
           - not_null
+      - name: has_outlier_distance
+        description: "True if trip_distance is above 100 miles (likely a recording error)."
+        tests:
+          - not_null
       - name: pickup_zone_id
         description: "TLC taxi zone where the trip started."
         tests:
@@ -123,3 +127,60 @@ models:
         description: "Sum of total_amount. Net of negative adjustments, excludes cash tips."
       - name: total_distance_miles
         description: "Sum of trip_distance in miles."
+  - name: agg_revenue_and_tips
+    description: "Trips, fares, tips and revenue per payment type, pickup hour and distance bucket. Answers business question 3."
+    columns:
+      - name: payment_type
+        description: "TLC payment type code (from dim_payment_type)."
+        tests:
+          - not_null
+      - name: payment_type_name
+        description: "Name of the payment type."
+      - name: pickup_hour
+        description: "Hour of the pickup (0-23)."
+        tests:
+          - not_null
+      - name: distance_bucket
+        description: "Trip distance range. The leading number gives the sort order."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['0: zero', '1: 0-1 mi', '2: 1-2 mi', '3: 2-5 mi', '4: 5-10 mi', '5: 10-20 mi', '6: 20+ mi']
+      - name: trips
+        description: "Number of trips."
+        tests:
+          - not_null
+      - name: total_fare
+        description: "Sum of fare_amount (metered fare)."
+      - name: total_tip
+        description: "Sum of tip_amount. Cash tips are not recorded, so tips are meaningful mainly for card payments (payment_type 1)."
+      - name: total_revenue
+        description: "Sum of total_amount. Includes negative adjustments, excludes cash tips."
+      - name: total_distance_miles
+        description: "Sum of trip_distance in miles."
+  - name: agg_efficiency_by_zone_hour
+    description: "Trip counts and sums of distance, duration and fare per pickup zone and hour. Answers business question 4 (efficiency). Trips flagged has_zero_distance or has_negative_amount are excluded."
+    columns:
+      - name: zone_id
+        description: "Pickup TLC taxi zone ID (see dim_zone)."
+        tests:
+          - not_null
+      - name: borough
+        description: "Borough of the pickup zone."
+      - name: zone
+        description: "Pickup zone name. Not unique, group by zone_id."
+      - name: pickup_hour
+        description: "Hour of the pickup (0-23)."
+        tests:
+          - not_null
+      - name: trips
+        description: "Number of trips without quality flags."
+        tests:
+          - not_null
+      - name: total_distance_miles
+        description: "Sum of trip_distance in miles."
+      - name: total_duration_seconds
+        description: "Sum of trip durations in seconds."
+      - name: total_fare
+        description: "Sum of fare_amount (metered fare, without tips, tolls and surcharges)."

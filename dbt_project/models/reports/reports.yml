@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: rpt_demand_by_hour
+    description: "Question 1: trips and average duration (minutes) by hour of day, 2024."
+  - name: rpt_demand_by_weekday
+    description: "Question 1: total trips and average trips per day by weekday (0 = Monday)."
+  - name: rpt_demand_by_month
+    description: "Question 1: total trips and average trips per day by month."
+  - name: rpt_pickup_zones
+    description: "Question 2: trips, revenue and revenue per trip by pickup zone."
+  - name: rpt_dropoff_zones
+    description: "Question 2: trips by dropoff zone."
+  - name: rpt_pickups_vs_dropoffs
+    description: "Question 2: pickups and dropoffs side by side for each zone."
+  - name: rpt_tip_pct_by_distance
+    description: "Question 3: tip as a percentage of fare by distance bucket (card payments only)."
+  - name: rpt_tip_pct_by_hour
+    description: "Question 3: tip as a percentage of fare by pickup hour (card payments only)."
+  - name: rpt_revenue_by_payment_type
+    description: "Question 3: fare and revenue per trip by payment type."
+  - name: rpt_efficiency_by_hour
+    description: "Question 4: average distance, duration, fare per mile and speed by pickup hour. Excludes trips with quality flags."
+  - name: rpt_efficiency_by_zone
+    description: "Question 4: average distance, duration, fare per mile and speed by pickup zone. Excludes trips with quality flags."

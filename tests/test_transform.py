@@ -44,7 +44,7 @@ def test_transform_month_processes_new_month():
     assert transformer.transform_month("2024-01") is True
 
     transformer.read_bronze_month.assert_called_once_with("2024-01")
-    transformer.clean.assert_called_once_with(transformer.read_bronze_month.return_value)
+    transformer.clean.assert_called_once_with(transformer.read_bronze_month.return_value,100)
     transformer._write.assert_called_once()
 
 
