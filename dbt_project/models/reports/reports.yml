@@ -20,6 +20,8 @@ models:
   - name: rpt_revenue_by_payment_type
     description: "Question 3: fare and revenue per trip by payment type."
   - name: rpt_efficiency_by_hour
-    description: "Question 4: average distance, duration, fare per mile and speed by pickup hour. Excludes trips with quality flags."
+    description: "Question 4: average distance (km), duration (minutes), fare per km (USD) and speed (km/h) by pickup hour. Excludes trips with quality flags."
   - name: rpt_efficiency_by_zone
-    description: "Question 4: average distance, duration, fare per mile and speed by pickup zone. Excludes trips with quality flags."
+    description: "Question 4: average distance (km), duration (minutes), fare per km (USD) and speed (km/h) by pickup zone. Excludes trips with quality flags."
+
+    

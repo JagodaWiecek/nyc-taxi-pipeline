@@ -1,11 +1,13 @@
+import os
+from unittest.mock import MagicMock
+
+import pytest
+import requests
+
 from src.clients import TlcClient, month_range
 from src.config import Config
 from src.exceptions import DownloadError, MonthNotAvailableError
 
-import pytest
-import os
-from unittest.mock import MagicMock
-import requests
 
 def test_session_retries_on_server_errors():
     """The session retries 3 times on 5xx errors, but not on 404."""

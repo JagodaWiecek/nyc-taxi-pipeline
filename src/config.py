@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 """
 The configuration class for all impotant parameters within the project. 
 The variables inside cannot be changed.
@@ -49,3 +50,21 @@ class Config:
     @property
     def silver_zone_table(self) -> str:
         return f"{self.catalog}.{self.silver_schema}.taxi_zones"
+
+    def gold_table(self, name: str) -> str:
+        return f"{self.catalog}.{self.gold_schema}.{name}"
+
+@dataclass(frozen=True)
+class ChartConfig:
+    """Look and output location of the charts built by analysis/charts.py."""
+
+    images_dir: str = "docs/images"
+    dpi: int = 150
+    series_color: str = "#257de0"
+    text_color: str = "#191919"
+    muted_color: str = "#666666"
+    grid_color: str = "#e5e5e5"
+    secondary_color: str = "#f47230"
+
+    def save_path(self, name: str) -> str:
+        return f"{self.images_dir}/{name}.png"

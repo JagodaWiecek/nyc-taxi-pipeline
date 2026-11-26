@@ -1,3 +1,4 @@
+import logging
 import os
 
 import requests
@@ -6,8 +7,6 @@ from urllib3.util.retry import Retry
 
 from src.config import Config
 from src.exceptions import DownloadError, MonthNotAvailableError
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -108,8 +107,7 @@ class TlcClient:
             with self.session.get(url, stream=True, timeout=self.timeout) as response:
                 response.raise_for_status()
                 with open(tmp_path, "wb") as f:
-                    for chunk in response.iter_content(chunk_size=1024 * 1024):
-                        f.write(chunk)
+                    f.writelines(response.iter_content(chunk_size=1024 * 1024))
             if os.path.getsize(tmp_path) == 0:
                 raise DownloadError(f"{label}: downloaded file is empty")
             os.replace(tmp_path, dest_path)

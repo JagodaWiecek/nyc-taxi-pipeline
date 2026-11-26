@@ -1,6 +1,10 @@
 name: nyc_taxi
 version: "1.0.0"
 profile: nyc_taxi
+require-dbt-version: [">=1.12.0", "<2.0.0"]
+
+vars:
+  km_per_mile: 1.609344
 
 model-paths: ["models"]
 

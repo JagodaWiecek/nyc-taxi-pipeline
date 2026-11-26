@@ -8,10 +8,7 @@ temp.ipynb
 draft_*.py
 CreatingVolume.dbquery.ipynb
 
-# dbt
-dbt_packages/
-logs/
-.user.yml
+
 
 # C extensions
 *.so
@@ -228,3 +225,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# dbt
+dbt_project/target/
+dbt_project/logs/
+dbt_project/dbt_packages/
+dbt_packages/
+logs/
+.user.yml
