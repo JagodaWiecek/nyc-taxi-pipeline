@@ -4,3 +4,5 @@ pyspark
 ruff
 dbt-core>=1.12,<2
 dbt-databricks>=1.13,<2
+matplotlib
+databricks-sql-connector

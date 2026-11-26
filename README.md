@@ -171,3 +171,4 @@ Already downloaded files are skipped, so the download can be safely re-run.
 
 - [Data dictionary](docs/data_dictionary.md): columns and layer principles
 - [Data quality](docs/data_quality.md): findings from profiling the bronze data
+- [Analysis](docs/analysis.md): answers to the business questions with charts

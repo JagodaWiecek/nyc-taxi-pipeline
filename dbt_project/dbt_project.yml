@@ -2,6 +2,9 @@ name: nyc_taxi
 version: "1.0.0"
 profile: nyc_taxi
 
+vars:
+  km_per_mile: 1.609344
+
 model-paths: ["models"]
 
 models:
