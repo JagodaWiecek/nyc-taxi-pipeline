@@ -7,7 +7,6 @@ from src.exceptions import SilverError
 from src.transform import SilverTransformer
 
 
-
 def _make_transformer():
     """Build a transformer with a fake Spark session, nothing real is executed."""
     return SilverTransformer(MagicMock(), Config())
@@ -138,7 +137,7 @@ def _zone_transformer(total=265, ids=265, table_exists=False):
     return SilverTransformer(spark, config), spark, clean
 
 def test_transform_zone_lookup_writes_valid_table():
-    transformer, spark, clean = _zone_transformer()
+    transformer, _ , clean = _zone_transformer()
 
     with patch.object(SilverTransformer, "clean_zones", return_value=clean), patch("src.transform.F"):
         assert transformer.transform_zone_lookup() is True
@@ -149,9 +148,11 @@ def test_transform_zone_lookup_writes_valid_table():
 
 def test_transform_zone_lookup_rejects_duplicate_ids():
     transformer, _, clean = _zone_transformer(total=265, ids=264)
-
-    with patch.object(SilverTransformer, "clean_zones", return_value=clean), patch("src.transform.F"):
-        with pytest.raises(SilverError):
-            transformer.transform_zone_lookup()
+    with (
+        patch.object(SilverTransformer, "clean_zones", return_value=clean),
+        patch("src.transform.F"),
+        pytest.raises(SilverError),
+    ):
+        transformer.transform_zone_lookup()
 
     clean.withColumn.assert_not_called()

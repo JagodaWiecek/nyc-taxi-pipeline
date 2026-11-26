@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 """
 The configuration class for all impotant parameters within the project. 
 The variables inside cannot be changed.

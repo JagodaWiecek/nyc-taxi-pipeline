@@ -1,13 +1,12 @@
 """Build the charts in docs/images from the rpt_ tables in Databricks."""
-
+import calendar
 import os
 from pathlib import Path
+
 import matplotlib.pyplot as plt
 from databricks import sql
-import calendar
 
 from src.config import ChartConfig, Config
-
 
 CONFIG = Config()
 CHARTS = ChartConfig()

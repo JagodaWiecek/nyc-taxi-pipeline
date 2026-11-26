@@ -1,9 +1,10 @@
 from unittest.mock import MagicMock, patch
+
 import pytest
 
 from src.config import Config
-from src.ingest import BronzeIngestor
 from src.exceptions import IngestError
+from src.ingest import BronzeIngestor
 
 
 def _make_ingestor():

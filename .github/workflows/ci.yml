@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Unit tests
+        run: pytest
+
+      - name: Validate the dbt project
+        working-directory: dbt_project
+        env:
+          DATABRICKS_HOST: dummy.cloud.databricks.com
+          DATABRICKS_HTTP_PATH: /sql/1.0/warehouses/dummy
+          DATABRICKS_TOKEN: dummy
+        run: dbt parse --profiles-dir .

@@ -1,6 +1,7 @@
-from src.config import Config
-from src.clients import TlcClient
 import logging
+
+from src.clients import TlcClient
+from src.config import Config
 
 if __name__ == "__main__":
     logging.basicConfig(
