@@ -30,7 +30,7 @@ revenue and tips.
   - [x] Question 3: revenue and tips (aggregate and reports)
   - [x] Question 4: efficiency (aggregate and reports)
   - [x] Table and column descriptions in Unity Catalog (`persist_docs`)
-- [ ] Analysis write-up with charts (docs/analysis.md)
+- [x] Analysis write-up with charts (docs/analysis.md)
 - [ ] GitHub Actions CI
 - [ ] Scheduled Databricks job (no notebooks)
 - [ ] Development guide (docs/development.md)
@@ -62,7 +62,8 @@ revenue and tips.
 │   ├── catalog_docs.py      # table and column comments in Unity Catalog
 │   └── exceptions.py        # custom exceptions
 ├── analysis/
-│   └── bronze_profile.py    # queries behind docs/data_quality.md
+│   ├── bronze_profile.py    # queries behind docs/data_quality.md
+│   └── charts.py
 ├── tests/
 │   ├── test_clients.py
 │   ├── test_ingest.py
@@ -87,7 +88,8 @@ revenue and tips.
 └── docs/
     ├── data_dictionary.md
     ├──data_quality.md
-    └──
+    ├── analysis.md
+    └── images/              # charts answering the business questions (built by analysis/charts.py)
     
 ```
 
