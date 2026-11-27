@@ -24,6 +24,12 @@ jobs:
       - name: Lint
         run: ruff check .
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - name: Unit tests
         run: pytest
 
