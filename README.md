@@ -31,16 +31,16 @@ revenue and tips.
   - [x] Question 4: efficiency (aggregate and reports)
   - [x] Table and column descriptions in Unity Catalog (`persist_docs`)
 - [x] Analysis write-up with charts (docs/analysis.md)
-- [ ] GitHub Actions CI
+- [x] GitHub Actions CI
 - [ ] Scheduled Databricks job (no notebooks)
+- [x] Apply catalog comments as part of the pipeline run (main.py)
 - [ ] Development guide (docs/development.md)
-- [ ] Apply catalog comments as part of the pipeline run (main.py)
 
 **Tests**
 - [x] TLC client (mocked HTTP, no internet needed)
 - [x] Bronze ingestor logic (mocked Spark)
 - [x] Silver transformer logic (mocked Spark)
-- [ ] Silver cleaning rules on a real Spark session (written, waiting for CI)
+- [x] Silver cleaning rules on a real Spark session (written, waiting for CI)
 - [x] Gold layer (dbt tests: unique, not_null, relationships)
 - [x] Aggregates match the fact table (custom dbt tests)
 - [ ] End-to-end pipeline test on a small sample
@@ -113,6 +113,13 @@ Both bronze and silver are processed **one month at a time**, using the
 `_year_month` column. A new month is processed without recomputing the
 previous ones, and re-running the pipeline skips months that are already
 loaded. The zone lookup is a single small file, loaded once.
+
+## Orchestration
+
+The Databricks job `nyc-taxi-pipeline` runs the whole pipeline from the `main` branch on GitHub:
+
+1. `bronze_silver`: `main.py` downloads new files and builds bronze and silver; months already loaded are skipped.
+2. `gold_dbt`: `dbt build` builds and tests the gold layer; it runs only if the first task succeeds.
 
 ## Getting started
 
