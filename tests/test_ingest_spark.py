@@ -1,7 +1,7 @@
 """Tests of reading raw files into the bronze schema on a real Spark session (need pyspark and Java)."""
-import pytest
 
 from src.ingest import BRONZE_COLUMNS, BronzeIngestor
+
 
 class FakeConfig:
     """Points raw_file_path() at a temporary folder instead of the Volume."""
